@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Acadex"
+version = "1.0.0"
+id = "artifacts/acadex"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22922
+
+[services.development]
+run = "pnpm --filter @workspace/acadex run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/acadex", "run", "build" ]
+publicDir = "artifacts/acadex/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22922"
+BASE_PATH = "/"
