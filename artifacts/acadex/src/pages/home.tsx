@@ -44,10 +44,10 @@ export default function Home() {
           <div className="flex gap-2 w-full sm:w-auto">
             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="All Subjects" />
+                <SelectValue placeholder="All Courses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Subjects</SelectItem>
+                <SelectItem value="all">All Courses</SelectItem>
                 <SelectItem value="Mathematics">Mathematics</SelectItem>
                 <SelectItem value="Physics">Physics</SelectItem>
                 <SelectItem value="Computer Science">Computer Science</SelectItem>
