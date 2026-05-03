@@ -1,7 +1,8 @@
+import Leaderboard from "../components/Leaderboard";
 import { useListChallenges, useGetChallengeStats, useGetRecentActivity } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatTimeAgo } from "@/lib/date-utils";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Clock, BookOpen, User, Flame } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +32,7 @@ export default function Home() {
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
 
   return (
+    
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-3 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -235,6 +237,7 @@ export default function Home() {
                           href={`/challenges/${item.challengeId || item.id}`}
                           className="font-medium text-foreground hover:text-primary transition-colors"
                         >
+                         
                           {item.title}
                         </Link>
                       </p>
@@ -249,6 +252,10 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
+
+        <div style={{ marginTop: "2rem" }}>
+          <Leaderboard />
+        </div>
       </div>
     </div>
   );
