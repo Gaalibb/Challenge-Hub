@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import {
   MessageSquare, Clock, BookOpen, User, Flame, Search,
-  BarChart3, Users, GraduationCap, Layers, Tag,
+  BarChart3, Users, GraduationCap, Layers, Tag, Hash,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo, useEffect } from "react";
@@ -52,12 +52,14 @@ function getLevelColor(difficulty: string) {
 export default function Home() {
   const [subjectFilter, setSubjectFilter] = useState<string>("");
   const [levelFilter, setLevelFilter] = useState<string>("");
+  const [courseCodeFilter, setCourseCodeFilter] = useState<string>("");
+  const [topicFilter, setTopicFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [tutorCount, setTutorCount] = useState<number | null>(null);
 
   const apiDifficulty = LEVEL_TO_API[levelFilter] || (levelFilter && !LEVEL_TO_API[levelFilter] ? levelFilter : undefined);
 
-  const { data: challenges, isLoading: challengesLoading } = useListChallenges({
+  const { data: allChallenges, isLoading: challengesLoading } = useListChallenges({
     subject: subjectFilter && subjectFilter !== "all" ? subjectFilter : undefined,
     difficulty: apiDifficulty,
   });
@@ -78,16 +80,57 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const filteredChallenges = useMemo(() => {
-    if (!challenges) return challenges;
-    if (!searchQuery.trim()) return challenges;
-    const q = searchQuery.toLowerCase();
-    return challenges.filter(
-      (c) =>
-        c.title.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q)
-    );
-  }, [challenges, searchQuery]);
+  // Derive unique course codes + topics from the full (server-filtered) list
+  const availableCourseCodes = useMemo(() => {
+    if (!allChallenges) return [];
+    const seen = new Set<string>();
+    for (const c of allChallenges) {
+      if (c.courseCode) seen.add(c.courseCode);
+    }
+    return Array.from(seen).sort();
+  }, [allChallenges]);
+
+  const availableTopics = useMemo(() => {
+    if (!allChallenges) return [];
+    const seen = new Set<string>();
+    for (const c of allChallenges) {
+      if (c.topic) seen.add(c.topic);
+    }
+    return Array.from(seen).sort();
+  }, [allChallenges]);
+
+  const challenges = useMemo(() => {
+    if (!allChallenges) return allChallenges;
+    let result = allChallenges;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (c) => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q)
+      );
+    }
+    if (courseCodeFilter) {
+      result = result.filter((c) => c.courseCode === courseCodeFilter);
+    }
+    if (topicFilter) {
+      result = result.filter((c) => c.topic === topicFilter);
+    }
+    return result;
+  }, [allChallenges, searchQuery, courseCodeFilter, topicFilter]);
+
+  const hasAnyFilter =
+    (subjectFilter && subjectFilter !== "all") ||
+    (levelFilter && levelFilter !== "all") ||
+    !!courseCodeFilter ||
+    !!topicFilter ||
+    !!searchQuery;
+
+  function clearAllFilters() {
+    setSubjectFilter("");
+    setLevelFilter("");
+    setCourseCodeFilter("");
+    setTopicFilter("");
+    setSearchQuery("");
+  }
 
   const groupCount = ALL_STUDY_GROUPS.length;
 
@@ -112,20 +155,19 @@ export default function Home() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          {/* ── Dropdowns: Course Title + Level ── */}
+          <div className="flex flex-wrap gap-2 items-center">
             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-              <SelectTrigger className="w-[150px]" data-testid="select-course-filter">
+              <SelectTrigger className="w-[160px]" data-testid="select-course-filter">
                 <SelectValue placeholder="All Courses" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Courses</SelectItem>
-                <SelectItem value="Mathematics">Mathematics</SelectItem>
-                <SelectItem value="Physics">Physics</SelectItem>
-                <SelectItem value="Computer Science">Computer Science</SelectItem>
-                <SelectItem value="Literature">Literature</SelectItem>
-                <SelectItem value="History">History</SelectItem>
-                <SelectItem value="Chemistry">Chemistry</SelectItem>
-                <SelectItem value="Biology">Biology</SelectItem>
+                {stats?.bySubject.map((s) => (
+                  <SelectItem key={s.subject} value={s.subject}>
+                    {s.subject}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -143,17 +185,57 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            {((subjectFilter && subjectFilter !== "all") || (levelFilter && levelFilter !== "all") || searchQuery) && (
+            {hasAnyFilter && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSubjectFilter(""); setLevelFilter(""); setSearchQuery(""); }}
+                onClick={clearAllFilters}
                 data-testid="button-clear-filters"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Clear filters
               </Button>
             )}
           </div>
+
+          {/* ── Course Code chips ── */}
+          {availableCourseCodes.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                <Hash className="h-3 w-3" /> Code:
+              </span>
+              {availableCourseCodes.map((code) => (
+                <Badge
+                  key={code}
+                  variant={courseCodeFilter === code ? "default" : "outline"}
+                  className="cursor-pointer select-none hover:bg-primary/10 transition-colors text-xs px-2 py-0.5"
+                  onClick={() => setCourseCodeFilter(courseCodeFilter === code ? "" : code)}
+                >
+                  {code}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* ── Topic chips ── */}
+          {availableTopics.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                <Tag className="h-3 w-3" /> Topic:
+              </span>
+              {availableTopics.map((topic) => (
+                <Badge
+                  key={topic}
+                  variant={topicFilter === topic ? "default" : "outline"}
+                  className="cursor-pointer select-none hover:bg-primary/10 transition-colors text-xs px-2 py-0.5 max-w-[200px] truncate"
+                  onClick={() => setTopicFilter(topicFilter === topic ? "" : topic)}
+                  title={topic}
+                >
+                  {topic}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -170,7 +252,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             ))
-          ) : filteredChallenges?.length === 0 ? (
+          ) : challenges?.length === 0 ? (
             <div className="text-center py-12 border rounded-lg bg-muted/20 border-dashed">
               <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-medium text-foreground">No challenges found</h3>
@@ -180,7 +262,7 @@ export default function Home() {
               </Link>
             </div>
           ) : (
-            filteredChallenges?.map((challenge) => (
+            challenges?.map((challenge) => (
               <Link key={challenge.id} href={`/challenges/${challenge.id}`} className="block group">
                 <Card className="hover:border-primary/50 transition-colors h-full flex flex-col">
                   <CardHeader className="pb-3">
