@@ -98,6 +98,19 @@ export interface ActivityItem {
   createdAt: string;
 }
 
+export interface TalentUser {
+  authorName: string;
+  totalResponses: number;
+  qualityScore: number;
+  engagementScore: number;
+  talentScore: number;
+}
+
+export interface TalentDiscoveryData {
+  topHelpers: TalentUser[];
+  potentialTutors: TalentUser[];
+}
+
 export interface ErrorResponse {
   error: string;
 }

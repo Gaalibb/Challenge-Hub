@@ -124,3 +124,27 @@ export const GetRecentActivityResponseItem = zod.object({
 export const GetRecentActivityResponse = zod.array(
   GetRecentActivityResponseItem,
 );
+
+/**
+ * @summary Get talent discovery data (top helpers and potential tutors)
+ */
+export const GetTalentDiscoveryResponse = zod.object({
+  topHelpers: zod.array(
+    zod.object({
+      authorName: zod.string(),
+      totalResponses: zod.number(),
+      qualityScore: zod.number(),
+      engagementScore: zod.number(),
+      talentScore: zod.number(),
+    }),
+  ),
+  potentialTutors: zod.array(
+    zod.object({
+      authorName: zod.string(),
+      totalResponses: zod.number(),
+      qualityScore: zod.number(),
+      engagementScore: zod.number(),
+      talentScore: zod.number(),
+    }),
+  ),
+});

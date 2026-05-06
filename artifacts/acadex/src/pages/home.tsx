@@ -1,4 +1,5 @@
 import Leaderboard from "../components/Leaderboard";
+import TalentDiscovery from "../components/TalentDiscovery";
 import { useListChallenges, useGetChallengeStats, useGetRecentActivity } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatTimeAgo } from "@/lib/date-utils";
@@ -322,6 +323,10 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
+
+        <div style={{ marginTop: "2rem" }}>
+          <TalentDiscovery />
+        </div>
 
         <div style={{ marginTop: "2rem" }}>
           <Leaderboard />

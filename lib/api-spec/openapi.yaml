@@ -13,6 +13,8 @@ tags:
     description: Academic challenge operations
   - name: responses
     description: Response operations
+  - name: talent
+    description: Talent discovery operations
 paths:
   /healthz:
     get:
@@ -145,6 +147,19 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ActivityItem"
+
+  /talent:
+    get:
+      operationId: getTalentDiscovery
+      tags: [talent]
+      summary: Get talent discovery data (top helpers and potential tutors)
+      responses:
+        "200":
+          description: Talent discovery data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TalentDiscoveryData"
 
 components:
   schemas:
@@ -279,6 +294,34 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    TalentUser:
+      type: object
+      required: [authorName, totalResponses, qualityScore, engagementScore, talentScore]
+      properties:
+        authorName:
+          type: string
+        totalResponses:
+          type: integer
+        qualityScore:
+          type: integer
+        engagementScore:
+          type: integer
+        talentScore:
+          type: integer
+
+    TalentDiscoveryData:
+      type: object
+      required: [topHelpers, potentialTutors]
+      properties:
+        topHelpers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TalentUser"
+        potentialTutors:
+          type: array
+          items:
+            $ref: "#/components/schemas/TalentUser"
 
     ErrorResponse:
       type: object

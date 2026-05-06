@@ -27,6 +27,7 @@ import type {
   HealthStatus,
   ListChallengesParams,
   Response,
+  TalentDiscoveryData,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -609,6 +610,81 @@ export function useGetRecentActivity<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecentActivityQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get talent discovery data (top helpers and potential tutors)
+ */
+export const getGetTalentDiscoveryUrl = () => {
+  return `/api/talent`;
+};
+
+export const getTalentDiscovery = async (
+  options?: RequestInit,
+): Promise<TalentDiscoveryData> => {
+  return customFetch<TalentDiscoveryData>(getGetTalentDiscoveryUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTalentDiscoveryQueryKey = () => {
+  return [`/api/talent`] as const;
+};
+
+export const getGetTalentDiscoveryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTalentDiscovery>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTalentDiscovery>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTalentDiscoveryQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTalentDiscovery>>
+  > = ({ signal }) => getTalentDiscovery({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTalentDiscovery>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTalentDiscoveryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTalentDiscovery>>
+>;
+export type GetTalentDiscoveryQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get talent discovery data (top helpers and potential tutors)
+ */
+
+export function useGetTalentDiscovery<
+  TData = Awaited<ReturnType<typeof getTalentDiscovery>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTalentDiscovery>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTalentDiscoveryQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

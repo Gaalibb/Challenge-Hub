@@ -11,6 +11,7 @@ import {
 } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { formatTimeAgo, formatDate } from "@/lib/date-utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -20,8 +21,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BookOpen, Clock, Loader2, MessageSquare, User } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Loader2, MessageSquare, User, Star, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface TalentUser {
+  authorName: string;
+  totalResponses: number;
+  qualityScore: number;
+  engagementScore: number;
+  talentScore: number;
+}
+
+function useTalentMap() {
+  const [map, setMap] = useState<Record<string, TalentUser>>({});
+  useEffect(() => {
+    fetch("/api/talent")
+      .then((r) => r.json())
+      .then((d: { topHelpers: TalentUser[]; potentialTutors: TalentUser[] }) => {
+        const merged: Record<string, TalentUser> = {};
+        [...d.topHelpers, ...d.potentialTutors].forEach((u) => {
+          merged[u.authorName] = u;
+        });
+        setMap(merged);
+      })
+      .catch(() => {});
+  }, []);
+  return map;
+}
+
+function TalentBadge({ score }: { score: number }) {
+  if (score >= 70)
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded">
+        <Star className="h-3 w-3" />
+        Top Helper
+      </span>
+    );
+  if (score >= 40)
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded">
+        <TrendingUp className="h-3 w-3" />
+        Rising
+      </span>
+    );
+  return null;
+}
 
 const LEVEL_DISPLAY: Record<string, string> = {
   beginner: "100",
@@ -70,6 +114,7 @@ export default function ChallengeDetail() {
   });
 
   const createResponse = useCreateResponse();
+  const talentMap = useTalentMap();
 
   const form = useForm<ResponseFormValues>({
     resolver: zodResolver(responseSchema),
@@ -225,11 +270,31 @@ export default function ChallengeDetail() {
                 </div>
 
                 <Card className="flex-1 border shadow-sm">
-                  <CardHeader className="py-3 px-4 bg-muted/30 border-b flex flex-row items-center justify-between gap-4">
-                    <span className="font-semibold text-primary">{response.authorName}</span>
-                    <span className="text-xs text-muted-foreground" title={formatDate(response.createdAt)}>
-                      {formatTimeAgo(response.createdAt)}
-                    </span>
+                  <CardHeader className="py-3 px-4 bg-muted/30 border-b">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-primary">{response.authorName}</span>
+                        {talentMap[response.authorName] && (
+                          <TalentBadge score={talentMap[response.authorName].talentScore} />
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground" title={formatDate(response.createdAt)}>
+                        {formatTimeAgo(response.createdAt)}
+                      </span>
+                    </div>
+                    {talentMap[response.authorName] && (
+                      <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Star className="h-3 w-3 text-emerald-500" />
+                          Quality {talentMap[response.authorName].qualityScore}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3 text-blue-500" />
+                          Engagement {talentMap[response.authorName].engagementScore}
+                        </span>
+                        <span>{talentMap[response.authorName].totalResponses} total responses</span>
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent className="py-4 px-4">
                     <div className="prose prose-sm dark:prose-invert max-w-none font-serif whitespace-pre-wrap">
