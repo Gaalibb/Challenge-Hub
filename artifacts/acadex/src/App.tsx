@@ -8,6 +8,7 @@ import { Layout } from "@/components/layout";
 import Home from "@/pages/home";
 import NewChallenge from "@/pages/new-challenge";
 import ChallengeDetail from "@/pages/challenge-detail";
+import SmartConnect from "@/pages/smart-connect";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/new" component={NewChallenge} />
       <Route path="/challenges/:id" component={ChallengeDetail} />
+      <Route path="/smart-connect" component={SmartConnect} />
       <Route component={NotFound} />
     </Switch>
   );

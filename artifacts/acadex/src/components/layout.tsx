@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { Link } from "wouter";
-import { BookOpen, PlusCircle } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { BookOpen, PlusCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -19,7 +19,13 @@ export function Layout({ children }: LayoutProps) {
             <span className="font-serif font-bold text-xl tracking-tight">EduLink360</span>
           </Link>
 
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
+            <Link href="/smart-connect" className="inline-flex">
+              <Button size="sm" variant="outline" className="gap-2 font-medium">
+                <Users className="h-4 w-4" />
+                SmartConnect
+              </Button>
+            </Link>
             <Link href="/new" className="inline-flex">
               <Button size="sm" className="gap-2 font-medium">
                 <PlusCircle className="h-4 w-4" />
