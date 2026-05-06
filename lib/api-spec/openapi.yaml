@@ -182,6 +182,15 @@ components:
           type: string
         subject:
           type: string
+        courseCode:
+          type: string
+          nullable: true
+        lecturerName:
+          type: string
+          nullable: true
+        topic:
+          type: string
+          nullable: true
         difficulty:
           type: string
           enum: [beginner, intermediate, advanced]
@@ -214,6 +223,15 @@ components:
           type: string
         subject:
           type: string
+        courseCode:
+          type: string
+          nullable: true
+        lecturerName:
+          type: string
+          nullable: true
+        topic:
+          type: string
+          nullable: true
         difficulty:
           type: string
           enum: [beginner, intermediate, advanced]
@@ -289,6 +307,15 @@ components:
           type: string
         subject:
           type: string
+        courseCode:
+          type: string
+          nullable: true
+        lecturerName:
+          type: string
+          nullable: true
+        topic:
+          type: string
+          nullable: true
         authorName:
           type: string
         createdAt:

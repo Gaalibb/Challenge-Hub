@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import {
   MessageSquare, Clock, BookOpen, User, Flame, Search,
-  BarChart3, Users, GraduationCap, Layers,
+  BarChart3, Users, GraduationCap, Layers, Tag,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo, useEffect } from "react";
@@ -192,8 +192,19 @@ export default function Home() {
                         <div className="flex flex-wrap gap-2 text-sm text-muted-foreground items-center">
                           <span className="flex items-center gap-1">
                             <BookOpen className="h-3.5 w-3.5" />
-                            {challenge.subject}
+                            {challenge.courseCode
+                              ? `${challenge.courseCode} — ${challenge.subject}`
+                              : challenge.subject}
                           </span>
+                          {challenge.lecturerName && (
+                            <>
+                              <span>&bull;</span>
+                              <span className="flex items-center gap-1">
+                                <GraduationCap className="h-3.5 w-3.5" />
+                                {challenge.lecturerName}
+                              </span>
+                            </>
+                          )}
                           <span>&bull;</span>
                           <span className="flex items-center gap-1">
                             <User className="h-3.5 w-3.5" />
@@ -205,6 +216,12 @@ export default function Home() {
                             {formatTimeAgo(challenge.createdAt)}
                           </span>
                         </div>
+                        {challenge.topic && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground/70 mt-0.5">
+                            <Tag className="h-3 w-3" />
+                            {challenge.topic}
+                          </div>
+                        )}
                       </div>
                       <Badge
                         variant="secondary"

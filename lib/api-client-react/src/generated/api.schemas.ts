@@ -23,6 +23,9 @@ export interface Challenge {
   title: string;
   description: string;
   subject: string;
+  courseCode?: string | null;
+  lecturerName?: string | null;
+  topic?: string | null;
   difficulty: ChallengeDifficulty;
   authorName: string;
   createdAt: string;
@@ -54,6 +57,9 @@ export interface CreateChallengeBody {
   title: string;
   description: string;
   subject: string;
+  courseCode?: string | null;
+  lecturerName?: string | null;
+  topic?: string | null;
   difficulty: CreateChallengeBodyDifficulty;
   authorName: string;
 }
@@ -94,6 +100,9 @@ export interface ActivityItem {
   challengeId?: number;
   title: string;
   subject: string;
+  courseCode?: string | null;
+  lecturerName?: string | null;
+  topic?: string | null;
   authorName: string;
   createdAt: string;
 }

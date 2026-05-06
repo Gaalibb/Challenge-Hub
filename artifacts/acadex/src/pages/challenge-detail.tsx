@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BookOpen, Clock, Loader2, MessageSquare, User, Star, TrendingUp, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Loader2, MessageSquare, User, Star, TrendingUp, Users, Hash, GraduationCap, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import StudyCircle from "@/components/StudyCircle";
 
@@ -216,8 +216,19 @@ export default function ChallengeDetail() {
                 <span>&bull;</span>
                 <span className="flex items-center gap-1">
                   <BookOpen className="h-4 w-4" />
-                  {challenge.subject}
+                  {challenge.courseCode
+                    ? `${challenge.courseCode} — ${challenge.subject}`
+                    : challenge.subject}
                 </span>
+                {challenge.lecturerName && (
+                  <>
+                    <span>&bull;</span>
+                    <span className="flex items-center gap-1">
+                      <GraduationCap className="h-4 w-4" />
+                      {challenge.lecturerName}
+                    </span>
+                  </>
+                )}
                 <span>&bull;</span>
                 <span className="flex items-center gap-1 font-medium text-foreground">
                   <User className="h-4 w-4" />
@@ -229,6 +240,13 @@ export default function ChallengeDetail() {
                   {formatTimeAgo(challenge.createdAt)}
                 </span>
               </div>
+
+              {challenge.topic && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/40 rounded-md px-3 py-2 w-fit">
+                  <Tag className="h-4 w-4 shrink-0" />
+                  <span><span className="font-medium text-foreground">Topic:</span> {challenge.topic}</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-card border rounded-lg p-6 md:p-8 text-card-foreground shadow-sm">

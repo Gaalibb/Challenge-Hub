@@ -10,31 +10,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BookOpen, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Loader2, Hash, GraduationCap, Tag, User } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title is too long"),
   description: z.string().min(20, "Description must be at least 20 characters"),
-  subject: z.string().min(2, "Course is required"),
+  subject: z.string().min(2, "Course Title is required"),
+  courseCode: z.string().optional(),
+  lecturerName: z.string().optional(),
+  topic: z.string().optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]),
   authorName: z.string().min(2, "Author name is required").max(50),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-const COMMON_SUBJECTS = [
-  "Mathematics",
-  "Physics",
-  "Computer Science",
-  "Chemistry",
-  "Biology",
-  "Literature",
-  "History",
-  "Philosophy",
-  "Economics"
-];
 
 export default function NewChallenge() {
   const [, setLocation] = useLocation();
@@ -47,6 +38,9 @@ export default function NewChallenge() {
       title: "",
       description: "",
       subject: "",
+      courseCode: "",
+      lecturerName: "",
+      topic: "",
       difficulty: "intermediate",
       authorName: "",
     },
@@ -56,7 +50,14 @@ export default function NewChallenge() {
 
   const onSubmit = (data: FormValues) => {
     createChallenge.mutate(
-      { data },
+      {
+        data: {
+          ...data,
+          courseCode: data.courseCode || null,
+          lecturerName: data.lecturerName || null,
+          topic: data.topic || null,
+        },
+      },
       {
         onSuccess: (challenge) => {
           queryClient.invalidateQueries({ queryKey: getListChallengesQueryKey() });
@@ -76,7 +77,7 @@ export default function NewChallenge() {
             title: "Error",
             description: "Failed to post the challenge. Please try again.",
           });
-        }
+        },
       }
     );
   };
@@ -102,17 +103,20 @@ export default function NewChallenge() {
             Be precise and provide enough context for others to form a thoughtful response.
           </CardDescription>
         </CardHeader>
+
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+              {/* ── Challenge Title ─────────────── */}
               <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>Challenge Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Optimizing QuickSort in Edge Cases" {...field} />
+                      <Input placeholder="e.g., Explain the principle of reversibility in thermodynamics" {...field} />
                     </FormControl>
                     <FormDescription>A clear, specific title for the problem.</FormDescription>
                     <FormMessage />
@@ -120,24 +124,19 @@ export default function NewChallenge() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ── Course Info row 1: Code + Title ─ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="subject"
+                  name="courseCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Course</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                        Course Code
+                      </FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            placeholder="Type or select a course..."
-                            {...field}
-                            list="common-subjects"
-                          />
-                          <datalist id="common-subjects">
-                            {COMMON_SUBJECTS.map(s => <option key={s} value={s} />)}
-                          </datalist>
-                        </div>
+                        <Input placeholder="e.g., ECE 514" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -146,28 +145,84 @@ export default function NewChallenge() {
 
                 <FormField
                   control={form.control}
-                  name="difficulty"
+                  name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Level</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-level">
-                            <SelectValue placeholder="Select a level" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="beginner">100</SelectItem>
-                          <SelectItem value="intermediate">200</SelectItem>
-                          <SelectItem value="advanced">300</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                        Course Title <span className="text-destructive">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Cyberpreneurship" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
+              {/* ── Course Info row 2: Lecturer + Topic ─ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="lecturerName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
+                        Lecturer Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Dr. Mary" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="topic"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                        Topic
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Introduction to Cyberpreneurship" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* ── Level ───────────────────────── */}
+              <FormField
+                control={form.control}
+                name="difficulty"
+                render={({ field }) => (
+                  <FormItem className="max-w-[200px]">
+                    <FormLabel>Level</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-level">
+                          <SelectValue placeholder="Select a level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="beginner">Level 100</SelectItem>
+                        <SelectItem value="intermediate">Level 200</SelectItem>
+                        <SelectItem value="advanced">Level 300</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* ── Description ─────────────────── */}
               <FormField
                 control={form.control}
                 name="description"
@@ -177,21 +232,26 @@ export default function NewChallenge() {
                     <FormControl>
                       <Textarea
                         placeholder="Detail the problem, known constraints, and what a successful solution looks like..."
-                        className="min-h-[200px] resize-y font-mono text-sm"
+                        className="min-h-[180px] resize-y font-mono text-sm"
                         {...field}
                       />
                     </FormControl>
+                    <FormDescription>Provide enough context for others to give a thoughtful response.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* ── Author ──────────────────────── */}
               <FormField
                 control={form.control}
                 name="authorName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your Name</FormLabel>
+                    <FormLabel className="flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                      Your Name
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Dr. Smith or Student123" {...field} />
                     </FormControl>
@@ -200,9 +260,9 @@ export default function NewChallenge() {
                 )}
               />
 
-              <div className="flex justify-end pt-4 border-t">
+              <div className="flex justify-end gap-3 pt-4 border-t">
                 <Link href="/">
-                  <Button type="button" variant="ghost" className="mr-2">Cancel</Button>
+                  <Button type="button" variant="ghost">Cancel</Button>
                 </Link>
                 <Button type="submit" disabled={createChallenge.isPending}>
                   {createChallenge.isPending ? (
