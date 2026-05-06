@@ -13,7 +13,7 @@ export default function NotFound() {
         The page you are looking for does not exist or may have been moved.
       </p>
       <Link href="/">
-        <Button className="mt-2">Return to Acadex</Button>
+        <Button className="mt-2">Return to EduLink360</Button>
       </Link>
     </div>
   );

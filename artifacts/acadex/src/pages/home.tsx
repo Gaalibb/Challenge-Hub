@@ -4,46 +4,94 @@ import { Link } from "wouter";
 import { formatTimeAgo } from "@/lib/date-utils";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Clock, BookOpen, User, Flame } from "lucide-react";
+import { MessageSquare, Clock, BookOpen, User, Flame, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-function getDifficultyColor(difficulty: string) {
+const LEVEL_DISPLAY: Record<string, string> = {
+  beginner: "100",
+  intermediate: "200",
+  advanced: "300",
+};
+
+const LEVEL_TO_API: Record<string, string> = {
+  "100": "beginner",
+  "200": "intermediate",
+  "300": "advanced",
+};
+
+function getLevelColor(difficulty: string) {
   switch (difficulty) {
-    case "beginner": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-    case "intermediate": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-    case "advanced": return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
-    default: return "bg-gray-100 text-gray-800";
+    case "beginner":
+    case "100":
+      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+    case "intermediate":
+    case "200":
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+    case "advanced":
+    case "300":
+      return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
+    case "400":
+      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
+    case "500":
+      return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+    default:
+      return "bg-gray-100 text-gray-800";
   }
 }
 
 export default function Home() {
   const [subjectFilter, setSubjectFilter] = useState<string>("");
-  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
+  const [levelFilter, setLevelFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const apiDifficulty = LEVEL_TO_API[levelFilter] || (levelFilter && !LEVEL_TO_API[levelFilter] ? levelFilter : undefined);
 
   const { data: challenges, isLoading: challengesLoading } = useListChallenges({
-    subject: subjectFilter || undefined,
-    difficulty: difficultyFilter || undefined,
+    subject: subjectFilter && subjectFilter !== "all" ? subjectFilter : undefined,
+    difficulty: apiDifficulty,
   });
 
   const { data: stats, isLoading: statsLoading } = useGetChallengeStats();
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
 
+  const filteredChallenges = useMemo(() => {
+    if (!challenges) return challenges;
+    if (!searchQuery.trim()) return challenges;
+    const q = searchQuery.toLowerCase();
+    return challenges.filter(
+      (c) =>
+        c.title.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q)
+    );
+  }, [challenges, searchQuery]);
+
   return (
-    
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-3 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Challenge Feed</h1>
             <p className="text-muted-foreground mt-1">Browse and respond to academic challenges.</p>
           </div>
-          
-          <div className="flex gap-2 w-full sm:w-auto">
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              data-testid="input-search"
+              className="pl-9"
+              placeholder="Search challenges by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[150px]" data-testid="select-course-filter">
                 <SelectValue placeholder="All Courses" />
               </SelectTrigger>
               <SelectContent>
@@ -53,29 +101,33 @@ export default function Home() {
                 <SelectItem value="Computer Science">Computer Science</SelectItem>
                 <SelectItem value="Literature">Literature</SelectItem>
                 <SelectItem value="History">History</SelectItem>
+                <SelectItem value="Chemistry">Chemistry</SelectItem>
+                <SelectItem value="Biology">Biology</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="All Difficulties" />
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger className="w-[130px]" data-testid="select-level-filter">
+                <SelectValue placeholder="All Levels" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Difficulties</SelectItem>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="200">200</SelectItem>
+                <SelectItem value="300">300</SelectItem>
+                <SelectItem value="400">400</SelectItem>
+                <SelectItem value="500">500</SelectItem>
               </SelectContent>
             </Select>
-            
-            {(subjectFilter && subjectFilter !== "all" || difficultyFilter && difficultyFilter !== "all") && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => { setSubjectFilter(""); setDifficultyFilter(""); }}
-                title="Clear filters"
+
+            {((subjectFilter && subjectFilter !== "all") || (levelFilter && levelFilter !== "all") || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSubjectFilter(""); setLevelFilter(""); setSearchQuery(""); }}
+                data-testid="button-clear-filters"
               >
-                &times;
+                Clear filters
               </Button>
             )}
           </div>
@@ -95,7 +147,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             ))
-          ) : challenges?.length === 0 ? (
+          ) : filteredChallenges?.length === 0 ? (
             <div className="text-center py-12 border rounded-lg bg-muted/20 border-dashed">
               <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-medium text-foreground">No challenges found</h3>
@@ -105,7 +157,7 @@ export default function Home() {
               </Link>
             </div>
           ) : (
-            challenges?.map((challenge) => (
+            filteredChallenges?.map((challenge) => (
               <Link key={challenge.id} href={`/challenges/${challenge.id}`} className="block group">
                 <Card className="hover:border-primary/50 transition-colors h-full flex flex-col">
                   <CardHeader className="pb-3">
@@ -131,8 +183,12 @@ export default function Home() {
                           </span>
                         </div>
                       </div>
-                      <Badge variant="secondary" className={`capitalize shrink-0 ${getDifficultyColor(challenge.difficulty)}`}>
-                        {challenge.difficulty}
+                      <Badge
+                        variant="secondary"
+                        className={`shrink-0 ${getLevelColor(challenge.difficulty)}`}
+                        data-testid={`badge-level-${challenge.id}`}
+                      >
+                        Level {LEVEL_DISPLAY[challenge.difficulty] ?? challenge.difficulty}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -144,7 +200,7 @@ export default function Home() {
                   <CardFooter className="pt-0 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5 bg-secondary/50 px-2.5 py-1 rounded-md text-secondary-foreground font-medium">
                       <MessageSquare className="h-4 w-4" />
-                      {challenge.responseCount} {challenge.responseCount === 1 ? 'response' : 'responses'}
+                      {challenge.responseCount} {challenge.responseCount === 1 ? "response" : "responses"}
                     </div>
                   </CardFooter>
                 </Card>
@@ -182,12 +238,27 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2 flex justify-between">By Subject</h4>
+                  <h4 className="font-semibold mb-2">By Courses</h4>
                   <div className="space-y-2">
                     {stats.bySubject.map((s) => (
                       <div key={s.subject} className="flex justify-between items-center text-muted-foreground">
                         <span className="truncate pr-2">{s.subject}</span>
                         <span className="font-mono bg-secondary px-1.5 py-0.5 rounded text-xs">{s.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">By Topics</h4>
+                  <div className="space-y-2">
+                    {stats.byDifficulty.map((d) => (
+                      <div key={d.difficulty} className="flex justify-between items-center text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`inline-block w-2 h-2 rounded-full ${getLevelColor(d.difficulty).split(" ")[0]}`} />
+                          Level {LEVEL_DISPLAY[d.difficulty] ?? d.difficulty}
+                        </span>
+                        <span className="font-mono bg-secondary px-1.5 py-0.5 rounded text-xs">{d.count}</span>
                       </div>
                     ))}
                   </div>
@@ -228,16 +299,15 @@ export default function Home() {
                           {item.authorName}
                         </span>
                         <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                          {formatTimeAgo(item.createdAt).replace('about ', '')}
+                          {formatTimeAgo(item.createdAt).replace("about ", "")}
                         </span>
                       </div>
                       <p className="text-muted-foreground line-clamp-1">
                         {item.type === "challenge" ? "Posted challenge: " : "Responded to: "}
-                        <Link 
+                        <Link
                           href={`/challenges/${item.challengeId || item.id}`}
                           className="font-medium text-foreground hover:text-primary transition-colors"
                         >
-                         
                           {item.title}
                         </Link>
                       </p>

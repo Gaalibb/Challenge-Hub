@@ -16,9 +16,9 @@ export function Layout({ children }: LayoutProps) {
             <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
               <BookOpen className="h-5 w-5" />
             </div>
-            <span className="font-serif font-bold text-xl tracking-tight">Acadex</span>
+            <span className="font-serif font-bold text-xl tracking-tight">EduLink360</span>
           </Link>
-          
+
           <nav className="flex items-center gap-4">
             <Link href="/new" className="inline-flex">
               <Button size="sm" className="gap-2 font-medium">
@@ -36,7 +36,7 @@ export function Layout({ children }: LayoutProps) {
 
       <footer className="border-t py-8 mt-12 bg-muted/40">
         <div className="container max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Acadex &copy; {new Date().getFullYear()} — Intellectual challenge, precise and purposeful.</p>
+          <p>EduLink360 &copy; {new Date().getFullYear()} — Intellectual challenge, precise and purposeful.</p>
         </div>
       </footer>
     </div>

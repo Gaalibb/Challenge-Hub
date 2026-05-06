@@ -1,9 +1,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-  useGetChallenge, 
-  getGetChallengeQueryKey, 
+import {
+  useGetChallenge,
+  getGetChallengeQueryKey,
   useCreateResponse,
   getGetChallengeStatsQueryKey,
   getGetRecentActivityQueryKey,
@@ -23,6 +23,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, BookOpen, Clock, Loader2, MessageSquare, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+const LEVEL_DISPLAY: Record<string, string> = {
+  beginner: "100",
+  intermediate: "200",
+  advanced: "300",
+};
+
 const responseSchema = z.object({
   content: z.string().min(10, "Response must be at least 10 characters"),
   authorName: z.string().min(2, "Author name is required").max(50),
@@ -30,12 +36,23 @@ const responseSchema = z.object({
 
 type ResponseFormValues = z.infer<typeof responseSchema>;
 
-function getDifficultyColor(difficulty: string) {
+function getLevelColor(difficulty: string) {
   switch (difficulty) {
-    case "beginner": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-    case "intermediate": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-    case "advanced": return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
-    default: return "bg-gray-100 text-gray-800";
+    case "beginner":
+    case "100":
+      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+    case "intermediate":
+    case "200":
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+    case "advanced":
+    case "300":
+      return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
+    case "400":
+      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
+    case "500":
+      return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+    default:
+      return "bg-gray-100 text-gray-800";
   }
 }
 
@@ -66,18 +83,17 @@ export default function ChallengeDetail() {
     createResponse.mutate(
       { id: challengeId, data },
       {
-        onSuccess: (newResponse) => {
-          // Update local cache rather than full refetch if possible, or invalidate
+        onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetChallengeQueryKey(challengeId) });
           queryClient.invalidateQueries({ queryKey: getListChallengesQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetChallengeStatsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetRecentActivityQueryKey() });
-          
+
           toast({
             title: "Response Posted",
             description: "Your response has been added to the discussion.",
           });
-          
+
           form.reset();
         },
         onError: () => {
@@ -141,10 +157,14 @@ export default function ChallengeDetail() {
                   {challenge.title}
                 </h1>
               </div>
-              
+
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <Badge variant="secondary" className={`capitalize shrink-0 text-xs ${getDifficultyColor(challenge.difficulty)}`}>
-                  {challenge.difficulty}
+                <Badge
+                  variant="secondary"
+                  className={`shrink-0 text-xs ${getLevelColor(challenge.difficulty)}`}
+                  data-testid="badge-challenge-level"
+                >
+                  Level {LEVEL_DISPLAY[challenge.difficulty] ?? challenge.difficulty}
                 </Badge>
                 <span>&bull;</span>
                 <span className="flex items-center gap-1">
@@ -203,7 +223,7 @@ export default function ChallengeDetail() {
                 <div className="flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-full border-2 border-background bg-secondary text-secondary-foreground font-bold shrink-0 z-10 shadow-sm mt-1">
                   {response.authorName.substring(0, 2).toUpperCase()}
                 </div>
-                
+
                 <Card className="flex-1 border shadow-sm">
                   <CardHeader className="py-3 px-4 bg-muted/30 border-b flex flex-row items-center justify-between gap-4">
                     <span className="font-semibold text-primary">{response.authorName}</span>
@@ -238,10 +258,10 @@ export default function ChallengeDetail() {
                     <FormItem>
                       <FormLabel>Your Solution or Thoughts</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Provide a detailed explanation, proof, or approach..." 
-                          className="min-h-[150px] resize-y font-mono text-sm bg-background" 
-                          {...field} 
+                        <Textarea
+                          placeholder="Provide a detailed explanation, proof, or approach..."
+                          className="min-h-[150px] resize-y font-mono text-sm bg-background"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -265,7 +285,7 @@ export default function ChallengeDetail() {
                       )}
                     />
                   </div>
-                  
+
                   <Button type="submit" disabled={createResponse.isPending} className="w-full sm:w-auto">
                     {createResponse.isPending ? (
                       <>

@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title is too long"),
   description: z.string().min(20, "Description must be at least 20 characters"),
-  subject: z.string().min(2, "Subject is required"),
+  subject: z.string().min(2, "Course is required"),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]),
   authorName: z.string().min(2, "Author name is required").max(50),
 });
@@ -40,7 +40,7 @@ export default function NewChallenge() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,12 +62,12 @@ export default function NewChallenge() {
           queryClient.invalidateQueries({ queryKey: getListChallengesQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetChallengeStatsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetRecentActivityQueryKey() });
-          
+
           toast({
             title: "Challenge Posted",
             description: "Your academic challenge has been successfully published.",
           });
-          
+
           setLocation(`/challenges/${challenge.id}`);
         },
         onError: () => {
@@ -126,12 +126,12 @@ export default function NewChallenge() {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subject</FormLabel>
+                      <FormLabel>Course</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input 
-                            placeholder="Type or select..." 
-                            {...field} 
+                          <Input
+                            placeholder="Type or select a course..."
+                            {...field}
                             list="common-subjects"
                           />
                           <datalist id="common-subjects">
@@ -149,17 +149,17 @@ export default function NewChallenge() {
                   name="difficulty"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Difficulty</FormLabel>
+                      <FormLabel>Level</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select difficulty" />
+                          <SelectTrigger data-testid="select-level">
+                            <SelectValue placeholder="Select a level" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="beginner">Beginner</SelectItem>
-                          <SelectItem value="intermediate">Intermediate</SelectItem>
-                          <SelectItem value="advanced">Advanced</SelectItem>
+                          <SelectItem value="beginner">100</SelectItem>
+                          <SelectItem value="intermediate">200</SelectItem>
+                          <SelectItem value="advanced">300</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -175,10 +175,10 @@ export default function NewChallenge() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Detail the problem, known constraints, and what a successful solution looks like..." 
-                        className="min-h-[200px] resize-y font-mono text-sm" 
-                        {...field} 
+                      <Textarea
+                        placeholder="Detail the problem, known constraints, and what a successful solution looks like..."
+                        className="min-h-[200px] resize-y font-mono text-sm"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
